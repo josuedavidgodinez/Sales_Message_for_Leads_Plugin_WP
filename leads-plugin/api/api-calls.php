@@ -16,9 +16,7 @@ function wp_madePostAPI(string $apiRoute, $body, bool $secured, array $Qparams =
    if(is_null($apiRequest)){
       return null;
    }else {
-      error_log($apiRequest['apiendpoint']);
       $response = wp_remote_post($apiRequest['apiendpoint'], $apiRequest['apiargs']);
-      error_log(json_encode($response));
       return $response;
    }
 
@@ -33,9 +31,7 @@ function wp_madePutAPI(string $apiRoute, $body, bool $secured, array $Qparams = 
    if(is_null($apiRequest)){
       return null;
    }else {
-      error_log($apiRequest['apiendpoint']);
       $response = wp_remote_request($apiRequest['apiendpoint'], $apiRequest['apiargs']);
-      error_log(json_encode($response));
       return $response;
    }
 

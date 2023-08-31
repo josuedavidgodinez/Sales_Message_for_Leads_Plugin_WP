@@ -15,7 +15,6 @@ function OkCreateResponse( $response)
 function getBody($response)  {
    if(OkCreateResponse($response)){
       $bodyResp = wp_remote_retrieve_body($response);
-      error_log($bodyResp);
       $data = json_decode($bodyResp);
       return $data;
    }else {

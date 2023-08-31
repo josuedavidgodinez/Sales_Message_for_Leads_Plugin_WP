@@ -4,7 +4,10 @@ require_once $path . "/api/api-calls.php";
 require_once $path . "/services/tag-service.php";
 require_once $path . "/services/message-service.php";
 require_once $path . "/services/timezone-service.php";
+require_once $path . "/services/number-service.php";
+
 require_once $path . "/services/send-mail-service.php";
+require_once $path . "/db/qty-data-service.php";
 
 require_once $path . "/utils/response-utils.php";
 require_once $path . "/env/constant-env-v.php";
@@ -32,10 +35,11 @@ function wp_CreateContact($first_name, $last_name, $phone, $mail)
 /**
  * Create conversation in sales message
  */
-function wp_CreateConversation($contactID)
+function wp_CreateConversation($contactID,$number_id)
 {
     $qParams=array(
-        'contact_id'=>$contactID
+        'contact_id'=>$contactID,
+        'numberid'=>$number_id
     );
     $response=wp_madePostAPI('/conversations',null,true,$qParams,endpointSalesMessage());
     if (!is_null($response)) {
@@ -44,62 +48,109 @@ function wp_CreateConversation($contactID)
     return null;
 }
 
+function SearchIndexForm($form_name,$main_form_drpdown_value)  {
+    $qty=getQtyLocationsTable();
+    $indexSearch=null;
+    for ($i=1; $i <= $qty; $i++) { 
+        if (is_null($form_name)) {
+            $form_location_S=get_option('main_form_drpdown_value'.$i);
+            if ($main_form_drpdown_value==$form_location_S) {
+                $indexSearch=$i;
+                break;
+            }
+        }else{
+            $form_name_S=get_option('elementor_form_name'.$i);
+            if ($form_name==$form_name_S) {
+                $indexSearch=$i;
+                break;
+            }
+        }
+    }
+    return $indexSearch;
+}
+
 /**
  * initial flow for leads
  */
 function wp_InitialFlowForLeads($record,$ajax_handler)
 {
 
+    //define response
     $leadsProcessResponse= new stdClass();
+    //get form name
     $form_name = $record->get_form_settings('form_name');
-    if ($form_name == 'ContactUs') {
-        $raw_fields = $record->get('fields');
-        $fields = [];
-        foreach ($raw_fields as $id => $field) {
-            $fields[$id] = $field['value'];
-        }
-        $firstname=$fields['firstname'];
-        $lastname=$fields['lastname'];
-        $email=$fields['email'];
-        $phone=  $fields['phone'];
+    
+    //get ids of the forms
+    $IDFieldforFirstName=get_option('IDFieldforFirstName');
+    $IDFieldforLastName=get_option('IDFieldforLastName');
+    $IDFieldforEmail=get_option('IDFieldforEmail');
+    $IDFieldforPhone=get_option('IDFieldforPhone');
+    $IDFieldforDropdownSofLocations=get_option('IDFieldforDropdownSofLocations');
+    //main form name
+    $MainFormName=get_option('MainFormName');
+
+    //get input fields
+    $raw_fields = $record->get('fields');
+    $fields = [];
+    foreach ($raw_fields as $id => $field) {
+        $fields[$id] = $field['value'];
+    }
+
+    //get index of the form
+    $indexform=null;
+    if ($MainFormName==$form_name) {
+        $indexform=SearchIndexForm(null,$fields[$IDFieldforDropdownSofLocations]);
+    }else{
+        $indexform=SearchIndexForm($form_name,null);
+    }
+
+    //settings form enviroment
+    $settings=new LocationFormSettings($indexform);
+    $numberid=wp_numberSearch_ReturnID($settings->PhoneNumber());
+    error_log('number id :'.$numberid);
+    if (!is_null($indexform)) {
+        $firstname=$fields[$IDFieldforFirstName];
+        $lastname=$fields[$IDFieldforLastName];
+        $email=$fields[$IDFieldforEmail];
+        $phone=  $fields[$IDFieldforPhone];
 
         $reponseCreateContact=wp_CreateContact($firstname,$lastname,$phone,$email);
         $leadsProcessResponse->reponseCreateContact=$reponseCreateContact;
         if($reponseCreateContact){
-            $reponseTagContact=wp_TagContact($reponseCreateContact->id);
+            $reponseTagContact=wp_TagContact($reponseCreateContact->id,$indexform);
             $leadsProcessResponse->reponseTagContact=$reponseTagContact;
 
             //Send mail 
-            $SendMail=wp_SendMail( $email,mailSubject(),smsTemplate(0,$firstname.' '.$lastname.' ',userFirstName(),userLastName(),brandName(),websiteURL(),phoneNumber()));
+            $SendMail=wp_SendMail( $email,mailSubject(),smsTemplate(0,$firstname.' '.$lastname.' ',userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber()));
             $leadsProcessResponse->SendMail=$SendMail;
 
-            $reponseCreateConversation=wp_CreateConversation($reponseCreateContact->id);
+            $reponseCreateConversation=wp_CreateConversation($reponseCreateContact->id,$numberid);
             $leadsProcessResponse->reponseCreateConversation=$reponseCreateConversation;
 
             if($reponseCreateConversation){
 
-                $landingTimezone=TimeZone();
+                $landingTimezone=$settings->TimeZone();
                 //FIRST SMS
                 $send_at1=wp_getCurrentUTCwithAddSeconds(120);//2 minutes after
-                $message=smsTemplate(1,$firstname.' '.$lastname.' ',userFirstName(),userLastName(),brandName(),websiteURL(),phoneNumber());
+                $message=smsTemplate(1,$firstname.' '.$lastname.' ',userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber());
                 $responseFirtSMS=wp_SendMessage($reponseCreateConversation->id,$message,$send_at1,false);
                 $leadsProcessResponse->responseFirtSMS=$responseFirtSMS;
 
                 //SECOND SMS
                 $send_at2=GetAdjustedTimeZonewithAddedSeconds(1,$landingTimezone);//24 hours after
-                $message=smsTemplate(2,$firstname.' '.$lastname.' ',userFirstName(),userLastName(),brandName(),websiteURL(),phoneNumber());
+                $message=smsTemplate(2,$firstname.' '.$lastname.' ',userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber());
                 $responseSecondSMS=wp_SendMessage($reponseCreateConversation->id,$message,$send_at2,true);
                 $leadsProcessResponse->responseSecondSMS=$responseSecondSMS;
 
                 //THIRD SMS
                 $send_at3=GetAdjustedTimeZonewithAddedSeconds(3,$landingTimezone);//3 days after
-                $message=smsTemplate(3,$firstname.' '.$lastname.' ',userFirstName(),userLastName(),brandName(),websiteURL(),phoneNumber());
+                $message=smsTemplate(3,$firstname.' '.$lastname.' ',userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber());
                 $responseThirdSMS=wp_SendMessage($reponseCreateConversation->id,$message,$send_at3,true);
                 $leadsProcessResponse->responseThirdSMS=$responseThirdSMS;
 
                 //FORTH SMS
                 $send_at4=GetAdjustedTimeZonewithAddedSeconds(7,$landingTimezone);//7 days after
-                $message=smsTemplate(4,$firstname.' '.$lastname.' ',userFirstName(),userLastName(),brandName(),websiteURL(),phoneNumber());
+                $message=smsTemplate(4,$firstname.' '.$lastname.' ',userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber());
                 $responseForthSMS=wp_SendMessage($reponseCreateConversation->id,$message,$send_at4,true); 
                 $leadsProcessResponse->responseForthSMS=$responseForthSMS;
 

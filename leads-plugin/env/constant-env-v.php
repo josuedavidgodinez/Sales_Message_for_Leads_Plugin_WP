@@ -1,84 +1,101 @@
 <?php
-// ----------------------------------------------------------------
-//RETURN ENDPOINT OF SALES MESSAGE
-function endpointSalesMessage()
+
+class LocationFormSettings
 {
-    return "https://api.salesmessage.com/pub/v2.1";
+    public $indexform;
+
+
+    // Constructor method
+    public  function __construct($indexform)
+    {
+        $this->indexform = $indexform;
+    }
+
+   
+    public function Tag()
+    {
+        return get_option('Tag'.$this->indexform);
+    }
+
+
+    public function websiteURL()
+    {
+        return get_option('websiteURL'.$this->indexform);
+    }
+
+
+    public function PhoneNumber()
+    {
+        return get_option('phoneNumber'.$this->indexform);
+    }
+
+    //VALID TIMEZONE VALUES GMT-4 GMT-5 GMT-6 GMT-7 GMT-8 GMT-9 GMT-10 
+    public function TimeZone()
+    {
+        return get_option('timeZone'.$this->indexform);
+    }
+
+   
 }
 
-function clientIDSalesMessage()
-{
-    return get_option('clientID');
-}
+ //GLOBAL SETTINGS
+ // ----------------------------------------------------------------
+    //RETURN ENDPOINT OF SALES MESSAGE
+     function endpointSalesMessage()
+    {
+        return "https://api.salesmessage.com/pub/v2.1";
+    }
+
+     function clientIDSalesMessage()
+    {
+        return get_option('clientID');
+    }
 
 
-function clientSECRETSalesMessage()
-{
-    return get_option('clientSecrect');
-}
+     function clientSECRETSalesMessage()
+    {
+        return get_option('clientSecrect');
+    }
 
-function userFirstName()
-{
-    return get_option('userFirstName');
-}
+     function userFirstName()
+    {
+        return get_option('userFirstName');
+    }
 
-function userLastName()
-{
-    return get_option('userLastName');
-}
+     function userLastName()
+    {
+        return get_option('userLastName');
+    }
 
-function brandName()
-{
-    return get_option('brandName');
-}
-function Tag()
-{
-    return get_option('Tag');
-}
+     function brandName()
+    {
+        return get_option('brandName');
+    }
 
+    function instagram()
+    {
+        return get_option('instagram');
+    }
 
-function websiteURL()
-{
-    return get_option('websiteURL');
-}
+     function RangeAvailableHours()
+    {
+        $range = new stdClass();
+        $range->minHour = intval(get_option('minAvailableHour'));
+        $range->maxHour = intval(get_option('maxAvailableHour'));
+        return $range;
+    }
+     function mailSubject()
+    {
+        return get_option('mailSubject');
+    }
 
-function instagram()
-{
-    return get_option('instagram');
-}
-
-
-function PhoneNumber()
-{
-    return get_option('phoneNumber');
-}
-
-//VALID TIMEZONE VALUES GMT-4 GMT-5 GMT-6 GMT-7 GMT-8 GMT-9 GMT-10 
-function TimeZone()
-{
-    return get_option('timeZone');
-}
-
-function RangeAvailableHours()
-{
-    $range = new stdClass();
-    $range->minHour = intval(get_option('minAvailableHour'));
-    $range->maxHour = intval(get_option('maxAvailableHour'));
-    return $range;
-}
-function mailSubject()
-{
-    return get_option('mailSubject');
-
-}
-
-function smsTemplate($numberOfNotification, $contactName, $userFirstName, $userLastName, $brandName, $websiteURL, $phoneNumber)
-{
-    $message = "";
-    switch ($numberOfNotification) {
-            //MAIL
-        case 0:
-            $message = "
+     function smsTemplate($numberOfNotification, $contactName, $userFirstName, $userLastName, $brandName, $websiteURL, $phoneNumber)
+    {
+        $message = "";
+        switch ($numberOfNotification) {
+                //MAIL
+            case 0:
+                $message = "
             <div>
             <h3>
             Hey there {CONTACT NAME}
@@ -108,26 +125,27 @@ function smsTemplate($numberOfNotification, $contactName, $userFirstName, $userL
             </div>
 
            ";
-            break;
-        case 1:
-            $message = "Hey {CONTACT NAME}, it's {USER FIRSTNAME} from {BRAND NAME}!📸 Just shot you an email. Excited to chat about your big day! If you've nailed down a date and venue, would you mind sharing? Also, make sure to check your email for more information on how you can get a FREE engagement shoot. Can't wait to hear from you! - {USER FIRSTNAME} {USER LASTNAME}";
-            break;
-        case 2:
-            $message = "Hey {CONTACT NAME}, it's {USER FIRSTNAME} from {BRAND NAME}!📸 Just checking in as I haven't heard from you. Got a moment to share your wedding date and venue? Really excited to discuss how we can capture your special day! - {USER FIRSTNAME} {USER LASTNAME}";
-            break;
-        case 3:
-            $message = "Hey {CONTACT NAME}, it's {USER FIRSTNAME} from {BRAND NAME}!📸 Just wanted to pop into your messages one more time. We're super excited about the possibility of being a part of your special day. When you're ready to talk wedding magic, I'm here!";
-            break;
-        case 4:
-            $message = "Hey {CONTACT NAME}, it's {USER FIRSTNAME} from {BRAND NAME}. Just a final check-in to see if you're still interested in discussing your wedding photo and video needs. If I don't hear back, I'll assume you're all set and won't text again. But remember, if you need anything in the future, we're here for you. Wedding planning is a marathon, not a sprint! 😊";
-            break;
+                break;
+            case 1:
+                $message = "Hey {CONTACT NAME}, it's {USER FIRSTNAME} from {BRAND NAME}!📸 Just shot you an email. Excited to chat about your big day! If you've nailed down a date and venue, would you mind sharing? Also, make sure to check your email for more information on how you can get a FREE engagement shoot. Can't wait to hear from you! - {USER FIRSTNAME} {USER LASTNAME}";
+                break;
+            case 2:
+                $message = "Hey {CONTACT NAME}, it's {USER FIRSTNAME} from {BRAND NAME}!📸 Just checking in as I haven't heard from you. Got a moment to share your wedding date and venue? Really excited to discuss how we can capture your special day! - {USER FIRSTNAME} {USER LASTNAME}";
+                break;
+            case 3:
+                $message = "Hey {CONTACT NAME}, it's {USER FIRSTNAME} from {BRAND NAME}!📸 Just wanted to pop into your messages one more time. We're super excited about the possibility of being a part of your special day. When you're ready to talk wedding magic, I'm here!";
+                break;
+            case 4:
+                $message = "Hey {CONTACT NAME}, it's {USER FIRSTNAME} from {BRAND NAME}. Just a final check-in to see if you're still interested in discussing your wedding photo and video needs. If I don't hear back, I'll assume you're all set and won't text again. But remember, if you need anything in the future, we're here for you. Wedding planning is a marathon, not a sprint! 😊";
+                break;
+        }
+        $message = str_replace('{CONTACT NAME}', $contactName, $message);
+        $message = str_replace('{USER FIRSTNAME}', $userFirstName, $message);
+        $message = str_replace('{USER LASTNAME}', $userLastName, $message);
+        $message = str_replace('{INSTAGRAM}', instagram(), $message);
+        $message = str_replace('{BRAND NAME}', $brandName, $message);
+        $message = str_replace('{WEBSITE URL}', $websiteURL, $message);
+        $message = str_replace('{PHONE NUMBER}', $phoneNumber, $message);
+        return $message;
     }
-    $message = str_replace('{CONTACT NAME}', $contactName, $message);
-    $message = str_replace('{USER FIRSTNAME}', $userFirstName, $message);
-    $message = str_replace('{USER LASTNAME}', $userLastName, $message);
-    $message = str_replace('{INSTAGRAM}', instagram(), $message);
-    $message = str_replace('{BRAND NAME}', $brandName, $message);
-    $message = str_replace('{WEBSITE URL}', $websiteURL, $message);
-    $message = str_replace('{PHONE NUMBER}', $phoneNumber, $message);
-    return $message;
-}
+

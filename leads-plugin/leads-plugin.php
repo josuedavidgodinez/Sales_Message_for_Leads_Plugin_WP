@@ -86,7 +86,7 @@ function displayAdminDashboard()
         foreach ($settings as $key => $label) {
             //if is setting of brand set
             if ($key != 'LocationParams') {
-                $value = sanitize_text_field($_POST[$key]);
+                $value = stripslashes(sanitize_text_field($_POST[$key]));
                 update_option($key, $value);
             } else {
                 //if is setting of location 

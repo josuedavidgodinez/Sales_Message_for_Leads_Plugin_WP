@@ -35,11 +35,12 @@ function wp_CreateContact($first_name, $last_name, $phone, $mail)
 /**
  * Create conversation in sales message
  */
-function wp_CreateConversation($contactID,$number_id)
+function wp_CreateConversation($contactID,$number_id,$numerable_id)
 {
     $qParams=array(
         'contact_id'=>$contactID,
-        'numberid'=>$number_id
+        'number_id'=>$number_id,
+        'team_id'=>$numerable_id
     );
     $response=wp_madePostAPI('/conversations',null,true,$qParams,endpointSalesMessage());
     if (!is_null($response)) {
@@ -106,8 +107,8 @@ function wp_InitialFlowForLeads($record,$ajax_handler)
 
     //settings form enviroment
     $settings=new LocationFormSettings($indexform);
-    $numberid=wp_numberSearch_ReturnID($settings->PhoneNumber());
-    error_log('number id :'.$numberid);
+    $numberdata=wp_numberSearch_ReturnID($settings->PhoneNumber());
+    error_log('number id :'.$numberdata->id);
     if (!is_null($indexform)) {
         $firstname=$fields[$IDFieldforFirstName];
         $lastname=$fields[$IDFieldforLastName];
@@ -124,14 +125,14 @@ function wp_InitialFlowForLeads($record,$ajax_handler)
             $SendMail=wp_SendMail( $email,mailSubject(),smsTemplate(0,$firstname.' '.$lastname.' ',userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber()));
             $leadsProcessResponse->SendMail=$SendMail;
 
-            $reponseCreateConversation=wp_CreateConversation($reponseCreateContact->id,$numberid);
+            $reponseCreateConversation=wp_CreateConversation($reponseCreateContact->id,$numberdata->id,$numberdata->numberableid);
             $leadsProcessResponse->reponseCreateConversation=$reponseCreateConversation;
 
             if($reponseCreateConversation){
 
                 $landingTimezone=$settings->TimeZone();
                 //FIRST SMS
-                $send_at1=wp_getCurrentUTCwithAddSeconds(120);//2 minutes after
+                $send_at1=wp_getCurrentUTCwithAddSeconds(20);//20 sec after
                 $message=smsTemplate(1,$firstname.' '.$lastname.' ',userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber());
                 $responseFirtSMS=wp_SendMessage($reponseCreateConversation->id,$message,$send_at1,false);
                 $leadsProcessResponse->responseFirtSMS=$responseFirtSMS;

@@ -19,8 +19,10 @@ function wp_numberSearch_ReturnID($number)
         error_log(json_encode($body));
         if (property_exists($body, 'data')) {
             if (count($body->data) > 0) {
-                $id = $body->data[0]->id;
-                return $id;
+                $numberdata=new stdClass();
+                $numberdata->id = $body->data[0]->id;
+                $numberdata->numberableid = $body->data[0]->numberable->id;
+                return $numberdata;
             }
             return null;
         }

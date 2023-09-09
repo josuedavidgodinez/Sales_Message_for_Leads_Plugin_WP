@@ -32,6 +32,9 @@ function leads_plugin_settings()
 
 
 
+
+
+
 function displayAdminDashboard()
 {
 
@@ -46,6 +49,11 @@ function displayAdminDashboard()
         'minAvailableHour' => 'Min. Available Hour for contact client (Example: 8)',
         'maxAvailableHour' => 'Max. Available Hour for contact client (Example: 22)',
         'mailSubject' => 'Mail Subject',
+        'mailMsg' => 'Mail Message',
+        'firstSMSMsg' => 'First SMS Message (2min)',
+        'secondSMSMsg' => 'Second SMS Message (24 hrs)',
+        'thirdSMSMsg' => 'Third SMS Message (3 days)',
+        'fourthSMSMsg' => 'Fourth SMS Message (7days)',
         'MainFormName' => 'Main Form Name (Example: contactusmainform)',
         'IDFieldforFirstName' => 'ID Field for first name (Example: firstname)',
         'IDFieldforLastName' => 'ID Field for last name  (Example: lastname)',
@@ -86,7 +94,19 @@ function displayAdminDashboard()
         foreach ($settings as $key => $label) {
             //if is setting of brand set
             if ($key != 'LocationParams') {
-                $value = stripslashes(sanitize_text_field($_POST[$key]));
+                $value;
+                if (
+                    $key == 'mailSubject' ||
+                    $key == 'mailMsg' ||
+                    $key == 'firstSMSMsg' ||
+                    $key == 'secondSMSMsg' ||
+                    $key == 'thirdSMSMsg' ||
+                    $key == 'fourthSMSMsg'
+                ) {
+                    $value = stripslashes($_POST[$key]);
+                }else{
+                    $value = stripslashes(sanitize_text_field($_POST[$key]));
+                }
                 update_option($key, $value);
             } else {
                 //if is setting of location 
@@ -107,7 +127,7 @@ function displayAdminDashboard()
 
     $savedSettings = array();
     foreach ($settings as $key => $label) {
-        //if is setting of brand set
+        //if is setting of brand set o message settings
         if ($key != 'LocationParams') {
             $savedSettings[$key] = get_option($key);
         } else {
@@ -147,8 +167,16 @@ function displayAdminDashboard()
 
             <h3>Brand Params</h3>
             <table class="table-form" id="brandsettings">';
-    foreach ($settings as $key => $label) :
-        if ($key != 'LocationParams') {
+    foreach ($settings as $key => $label):
+        if (
+            $key != 'LocationParams' &&
+            $key != 'mailSubject' &&
+            $key != 'mailMsg' &&
+            $key != 'firstSMSMsg' &&
+            $key != 'secondSMSMsg' &&
+            $key != 'thirdSMSMsg' &&
+            $key != 'fourthSMSMsg'
+        ) {
 
             echo ' <tr>
                             <th style="text-align: left;"><label for="' . esc_attr($key) . '">' . esc_html($label) . ':</label></th>
@@ -160,14 +188,48 @@ function displayAdminDashboard()
         }
     endforeach;
     echo '</table>
+    <input type="submit" name="leads_plugin_submit" class="button-primary" value="Save Settings">
+
+    <h3>Message Params</h3>';
+
+    echo '  <table class="table-form" id=SMSsettings">';
+    foreach ($settings as $key => $label):
+        if (
+            $key == 'mailSubject' ||
+            $key == 'mailMsg' ||
+            $key == 'firstSMSMsg' ||
+            $key == 'secondSMSMsg' ||
+            $key == 'thirdSMSMsg' ||
+            $key == 'fourthSMSMsg'
+        ) {
+            $rows=$key=='mailSubject'?5:15;
+
+            echo ' <tr>
+                            <th style="text-align: left;"><label for="' . esc_attr($key) . '">' . esc_html($label) . ':</label></th>
+                            <td style=" width: 557px">
+                            <textarea
+                            style=" width: 100%" 
+                            name="' . esc_attr($key) . '" 
+                            id="' . esc_attr($key) . '" 
+                            type="text"
+                            rows="'.$rows.'" 
+                            >' . esc_attr($savedSettings[$key]) . '</textarea>
+                            <input type="submit" name="leads_plugin_submit" class="button-primary" value="Save Settings">
+                                <br><br>          
+                            </td>
+
+                        </tr>';
+        }
+    endforeach;
+    echo '</table>
             <input type="submit" name="leads_plugin_submit" class="button-primary" value="Save Settings">
 
             <h3>Locations Params</h3>
             <div style=" display: flex; justify-content: space-between;  padding: 20px; flex-wrap: wrap; ">';
-    foreach ($settings['LocationParams'] as $i => $LocSettings) :
+    foreach ($settings['LocationParams'] as $i => $LocSettings):
 
         echo '<table style="border: 1px solid;" class="table-form" id="locationsettings' . esc_attr($i) . '">';
-        foreach ($settings['LocationParams'][$i] as $key => $label) :
+        foreach ($settings['LocationParams'][$i] as $key => $label):
             echo ' <tr>
                                 <th style="text-align: left;"><label for="' . esc_attr($key) . '">' . esc_html($label) . ':</label></th>
                                 <td>

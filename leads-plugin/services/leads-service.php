@@ -122,7 +122,9 @@ function wp_InitialFlowForLeads($record,$ajax_handler)
             $leadsProcessResponse->reponseTagContact=$reponseTagContact;
 
             //Send mail 
-            $SendMail=wp_SendMail( $email,mailSubject(),smsTemplate(0,$firstname.' '.$lastname.' ',userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber()));
+            $MailSubject=smsTemplate(0,$firstname,$lastname,userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber());
+
+            $SendMail=wp_SendMail( $email,$MailSubject,smsTemplate(0,$firstname,$lastname,userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber()));
             $leadsProcessResponse->SendMail=$SendMail;
 
             $reponseCreateConversation=wp_CreateConversation($reponseCreateContact->id,$numberdata->id,$numberdata->numberableid);
@@ -133,25 +135,25 @@ function wp_InitialFlowForLeads($record,$ajax_handler)
                 $landingTimezone=$settings->TimeZone();
                 //FIRST SMS
                 $send_at1=wp_getCurrentUTCwithAddSeconds(20);//20 sec after
-                $message=smsTemplate(1,$firstname.' '.$lastname.' ',userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber());
+                $message=smsTemplate(1,$firstname,$lastname,userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber());
                 $responseFirtSMS=wp_SendMessage($reponseCreateConversation->id,$message,$send_at1,false);
                 $leadsProcessResponse->responseFirtSMS=$responseFirtSMS;
 
                 //SECOND SMS
                 $send_at2=GetAdjustedTimeZonewithAddedSeconds(1,$landingTimezone);//24 hours after
-                $message=smsTemplate(2,$firstname.' '.$lastname.' ',userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber());
+                $message=smsTemplate(2,$firstname,$lastname,userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber());
                 $responseSecondSMS=wp_SendMessage($reponseCreateConversation->id,$message,$send_at2,true);
                 $leadsProcessResponse->responseSecondSMS=$responseSecondSMS;
 
                 //THIRD SMS
                 $send_at3=GetAdjustedTimeZonewithAddedSeconds(3,$landingTimezone);//3 days after
-                $message=smsTemplate(3,$firstname.' '.$lastname.' ',userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber());
+                $message=smsTemplate(3,$firstname,$lastname,userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber());
                 $responseThirdSMS=wp_SendMessage($reponseCreateConversation->id,$message,$send_at3,true);
                 $leadsProcessResponse->responseThirdSMS=$responseThirdSMS;
 
                 //FORTH SMS
                 $send_at4=GetAdjustedTimeZonewithAddedSeconds(7,$landingTimezone);//7 days after
-                $message=smsTemplate(4,$firstname.' '.$lastname.' ',userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber());
+                $message=smsTemplate(4,$firstname,$lastname,userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber());
                 $responseForthSMS=wp_SendMessage($reponseCreateConversation->id,$message,$send_at4,true); 
                 $leadsProcessResponse->responseForthSMS=$responseForthSMS;
 

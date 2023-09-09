@@ -10,7 +10,7 @@ function wp_SendMail($recipient_email,$subject, $email_message)
 {
   
     $headers = array(
-        'Content-Type: text/html; charset=UTF-8',
+        'Content-Type: text/plain; charset=UTF-8',
     );
     // Send the email
     $wp_mail_result = wp_mail($recipient_email,$subject, $email_message, $headers);

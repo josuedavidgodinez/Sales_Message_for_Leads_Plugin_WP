@@ -1,7 +1,6 @@
 <?php
 
 require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-
 function createQtyLocationsTable()
 {
     global $wpdb;

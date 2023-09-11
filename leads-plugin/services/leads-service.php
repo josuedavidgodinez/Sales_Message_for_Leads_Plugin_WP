@@ -35,13 +35,23 @@ function wp_CreateContact($first_name, $last_name, $phone, $mail)
 /**
  * Create conversation in sales message
  */
-function wp_CreateConversation($contactID,$number_id,$numerable_id)
+function wp_CreateConversation($contactID,$number_data)
 {
     $qParams=array(
-        'contact_id'=>$contactID,
-        'number_id'=>$number_id,
-        'team_id'=>$numerable_id
+        'contact_id'=>$contactID
     );
+
+
+    if( property_exists($number_data, 'numberableid') ){
+        $qParams['team_id']=$number_data->numberableid;
+    }
+    if(property_exists($number_data, 'id')){
+        $qParams['number_id']=$number_data->id;
+    }
+
+    error_log(json_encode($qParams));
+
+
     $response=wp_madePostAPI('/conversations',null,true,$qParams,endpointSalesMessage());
     if (!is_null($response)) {
         return getBody($response);
@@ -108,7 +118,7 @@ function wp_InitialFlowForLeads($record,$ajax_handler)
     //settings form enviroment
     $settings=new LocationFormSettings($indexform);
     $numberdata=wp_numberSearch_ReturnID($settings->PhoneNumber());
-    error_log('number id :'.$numberdata->id);
+    error_log('number id :'. json_encode($numberdata));
     if (!is_null($indexform)) {
         $firstname=$fields[$IDFieldforFirstName];
         $lastname=$fields[$IDFieldforLastName];
@@ -127,32 +137,33 @@ function wp_InitialFlowForLeads($record,$ajax_handler)
             $SendMail=wp_SendMail( $email,$MailSubject,smsTemplate(0,$firstname,$lastname,userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber()));
             $leadsProcessResponse->SendMail=$SendMail;
 
-            $reponseCreateConversation=wp_CreateConversation($reponseCreateContact->id,$numberdata->id,$numberdata->numberableid);
+            $reponseCreateConversation=wp_CreateConversation($reponseCreateContact->id,$numberdata);
             $leadsProcessResponse->reponseCreateConversation=$reponseCreateConversation;
 
             if($reponseCreateConversation){
 
                 $landingTimezone=$settings->TimeZone();
                 //FIRST SMS
-                $send_at1=wp_getCurrentUTCwithAddSeconds(20);//20 sec after
+                //$send_at1=wp_getCurrentUTCwithAddSeconds(20);//20 sec after
+                $send_at1=GetAdjustedTimeZonewithAddedSeconds(20,$landingTimezone,'seconds');//24 hours after
                 $message=smsTemplate(1,$firstname,$lastname,userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber());
                 $responseFirtSMS=wp_SendMessage($reponseCreateConversation->id,$message,$send_at1,false);
                 $leadsProcessResponse->responseFirtSMS=$responseFirtSMS;
 
                 //SECOND SMS
-                $send_at2=GetAdjustedTimeZonewithAddedSeconds(1,$landingTimezone);//24 hours after
+                $send_at2=GetAdjustedTimeZonewithAddedSeconds(1,$landingTimezone,'days');//24 hours after
                 $message=smsTemplate(2,$firstname,$lastname,userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber());
                 $responseSecondSMS=wp_SendMessage($reponseCreateConversation->id,$message,$send_at2,true);
                 $leadsProcessResponse->responseSecondSMS=$responseSecondSMS;
 
                 //THIRD SMS
-                $send_at3=GetAdjustedTimeZonewithAddedSeconds(3,$landingTimezone);//3 days after
+                $send_at3=GetAdjustedTimeZonewithAddedSeconds(3,$landingTimezone,'days');//3 days after
                 $message=smsTemplate(3,$firstname,$lastname,userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber());
                 $responseThirdSMS=wp_SendMessage($reponseCreateConversation->id,$message,$send_at3,true);
                 $leadsProcessResponse->responseThirdSMS=$responseThirdSMS;
 
                 //FORTH SMS
-                $send_at4=GetAdjustedTimeZonewithAddedSeconds(7,$landingTimezone);//7 days after
+                $send_at4=GetAdjustedTimeZonewithAddedSeconds(7,$landingTimezone,'days');//7 days after
                 $message=smsTemplate(4,$firstname,$lastname,userFirstName(),userLastName(),brandName(),$settings->websiteURL(),$settings->phoneNumber());
                 $responseForthSMS=wp_SendMessage($reponseCreateConversation->id,$message,$send_at4,true); 
                 $leadsProcessResponse->responseForthSMS=$responseForthSMS;

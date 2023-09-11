@@ -28,7 +28,7 @@ function wp_getCurrentUTCwithAddSeconds($seconds)
 }
 
 
-function GetAdjustedTimeZonewithAddedSeconds($days_to_add, $timezone) {
+function GetAdjustedTimeZonewithAddedSeconds($qtyAdd, $timezone, $unity) {
     
     $range = RangeAvailableHours();
     // Define available hours range
@@ -38,14 +38,17 @@ function GetAdjustedTimeZonewithAddedSeconds($days_to_add, $timezone) {
     $target_tz = new DateTimeZone($timezone);
 
     $now = new DateTime('now', $target_tz);
-    $now->modify("+$days_to_add day"); // Add specified days
+    $now->modify("+$qtyAdd $unity"); // Add specified days
     $current_hour = (int) $now->format('G');
 
     if ($current_hour >= $start_hour && $current_hour < $end_hour) {
         $next_hour = clone $now;
     } else {
         $next_hour = clone $now;
-        $next_hour->modify('+1 day');
+        //last range of the day add 1 day after
+        if ($current_hour<=24 && $current_hour>$end_hour) {
+            $next_hour->modify('+1 day');
+        }       
         $next_hour->setTime($start_hour, 0);
     }
 

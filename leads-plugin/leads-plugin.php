@@ -105,7 +105,11 @@ function displayAdminDashboard()
                 ) {
                     $value = stripslashes($_POST[$key]);
                 }else{
-                    $value = stripslashes(sanitize_text_field($_POST[$key]));
+                    if($key=='Instagram'){
+                        $value = (sanitize_text_field($_POST[$key]));
+                    }else{
+                        $value = stripslashes(sanitize_text_field($_POST[$key]));
+                    }
                 }
                 update_option($key, $value);
             } else {

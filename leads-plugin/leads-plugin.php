@@ -44,6 +44,7 @@ function displayAdminDashboard()
         'clientSecrect' => 'Client Secret',
         'brandName' => 'Brand Name',
         'instagram' => 'Instagram',
+        'calendar' => 'Calendar Link',
         'userFirstName' => 'User First Name',
         'userLastName' => 'User Last Name',
         'minAvailableHour' => 'Min. Available Hour for contact client (Example: 8)',
@@ -105,7 +106,7 @@ function displayAdminDashboard()
                 ) {
                     $value = stripslashes($_POST[$key]);
                 }else{
-                    if($key=='Instagram'){
+                    if($key=='instagram' || $key=='calendar'){
                         $value = (sanitize_text_field($_POST[$key]));
                     }else{
                         $value = stripslashes(sanitize_text_field($_POST[$key]));

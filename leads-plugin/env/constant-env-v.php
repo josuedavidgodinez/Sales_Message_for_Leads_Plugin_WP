@@ -77,6 +77,12 @@ class LocationFormSettings
         return get_option('instagram');
     }
 
+    function calendar()
+    {
+        return get_option('calendar');
+    }
+    
+
      function RangeAvailableHours()
     {
         $range = new stdClass();
@@ -140,6 +146,8 @@ class LocationFormSettings
         $message = str_replace('{USER FIRSTNAME}', $userFirstName, $message);
         $message = str_replace('{USER LASTNAME}', $userLastName, $message);
         $message = str_replace('{INSTAGRAM}', instagram(), $message);
+        $message = str_replace('{CALENDAR}', calendar(), $message);
+
         $message = str_replace('{BRAND NAME}', $brandName, $message);
         $message = str_replace('{WEBSITE URL}', $websiteURL, $message);
         $message = str_replace('{PHONE NUMBER}', $phoneNumber, $message);
